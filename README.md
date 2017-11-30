@@ -1,3 +1,3 @@
 # game
 
-this is the repository for our in class game project
+this is the repository for our in class game project.
