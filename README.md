@@ -1,2 +1,3 @@
 # hello-world
-u thot
+
+this is the repository for our in class game project
