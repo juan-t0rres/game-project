@@ -93,30 +93,24 @@ proj = projectTileList()
 lastPressed = "right"
 while not ge:
     proj.tick()
-
     for event in pygame.event.get():
-
         if event.type == pygame.QUIT:
             ge=True
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
+            if (event.key == pygame.K_LEFT or event.key == pygame.K_a):
                 dx=-block
-                dy=0
                 lastPressed = "left"
-            elif event.key == pygame.K_RIGHT:
+            if (event.key == pygame.K_RIGHT or event.key == pygame.K_d):
                 dx=block
-                dy=0
                 lastPressed = "right"
-            elif event.key == pygame.K_DOWN:
+            if (event.key == pygame.K_DOWN or event.key == pygame.K_s):
                 dy=block
-                dx=0
                 lastPressed = "down"
-            elif event.key == pygame.K_UP:
+            if (event.key == pygame.K_UP or event.key == pygame.K_w):
                 dy=-block
-                dx=0
                 lastPressed = "up"
-            elif (event.key == pygame.K_q):
-                if(lastPressed=="right"):
+            elif (event.key == pygame.K_SPACE):
+                if (lastPressed == "right"):
                     proj.add(Projectile(x, y, 0))
                 if (lastPressed == "left"):
                     proj.add(Projectile(x, y, 1))
@@ -124,22 +118,15 @@ while not ge:
                     proj.add(Projectile(x, y, 3))
                 if (lastPressed == "down"):
                     proj.add(Projectile(x, y, 4))
-
         if event.type == pygame.KEYUP:
-            if event.key == pygame.K_LEFT:
+            if (event.key == pygame.K_LEFT or event.key == pygame.K_a) and dx == -block:
                 dx=0
-                dy=0
-            elif event.key == pygame.K_RIGHT:
+            if (event.key == pygame.K_RIGHT or event.key == pygame.K_d) and dx is block:
                 dx=0
+            if (event.key == pygame.K_DOWN or event.key == pygame.K_s) and dy is block:
                 dy=0
-            elif event.key == pygame.K_DOWN:
+            if (event.key == pygame.K_UP or event.key == pygame.K_w) and dy == -block:
                 dy=0
-                dx=0
-            elif event.key == pygame.K_UP:
-                dy=0
-                dx=0
-
-
 
     y+=dy
     x+=dx
