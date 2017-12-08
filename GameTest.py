@@ -31,8 +31,7 @@ colours=[(0,0,0),(255,0,0),(0,255,0),(0,0,255),(255,255,255)]
 block=10
 displayx=800
 displayy=600
-fps=20
-
+fps=random.randint(20,60)
 gd=pygame.display.set_mode((displayx,displayy))
 pygame.display.set_caption("Test")
 
@@ -49,34 +48,25 @@ while not ge:
         if event.type == pygame.QUIT:
             ge=True
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
+            if (event.key == pygame.K_LEFT or event.key == pygame.K_a):
                 dx=-block
-                dy=0
-            elif event.key == pygame.K_RIGHT:
+            if (event.key == pygame.K_RIGHT or event.key == pygame.K_d):
                 dx=block
-                dy=0
-            elif event.key == pygame.K_DOWN:
+            if (event.key == pygame.K_DOWN or event.key == pygame.K_s):
                 dy=block
-                dx=0
-            elif event.key == pygame.K_UP:
+            if (event.key == pygame.K_UP or event.key == pygame.K_w):
                 dy=-block
-                dx=0
         if event.type == pygame.KEYUP:
-            if event.key == pygame.K_LEFT:
+            if (event.key == pygame.K_LEFT or event.key == pygame.K_a) and dx == -block:
                 dx=0
-                dy=0
-            elif event.key == pygame.K_RIGHT:
+            if (event.key == pygame.K_RIGHT or event.key == pygame.K_d) and dx is block:
                 dx=0
+            if (event.key == pygame.K_DOWN or event.key == pygame.K_s) and dy is block:
                 dy=0
-            elif event.key == pygame.K_DOWN:
+            if (event.key == pygame.K_UP or event.key == pygame.K_w) and dy == -block:
                 dy=0
-                dx=0
-            elif event.key == pygame.K_UP:
-                dy=0
-                dx=0
     y+=dy
     x+=dx
-    print(mapX,mapY)
     if(x<0):
         x=displayx-block
         if(mapX>0):
@@ -107,6 +97,5 @@ while not ge:
     pygame.draw.rect(gd,colours[0],[x,y,block,block])
     pygame.display.update()
     clock.tick(fps)
-
 pygame.quit()
 quit()
