@@ -10,30 +10,37 @@ class Background(pygame.sprite.Sprite):
 class Hero(pygame.sprite.Sprite):
     def __init__(self, location):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load("Character.png")
+        self.image = pygame.image.load("character.png")
         self.rect = self.image.get_rect()
         self.rect.left, self.rect.top = location
     def update(self,location):
         self.rect.left, self.rect.top = location
 class Projectile:
     def __init__(self,y,e, et):#boneless
-        if(et==0):
-            self.xMove = 20
-            self.yMove = 0
-        if (et == 1):
-            self.xMove = -20
-            self.yMove = 0
-        if (et == 3):
-            self.xMove = 0
-            self.yMove = -20
-        if (et == 4):
-            self.xMove = 0
-            self.yMove = 20
+        x = pygame.mouse.get_pos()
+        self.mouseX = x[0]
+        self.mouseY = x[1]
         self.x = y
         self.y = e
+        self.time = 0
+        self.die = False
+
+
+
+
+
+
+
     def tick(self):
-        self.x += self.xMove
-        self.y += self.yMove
+        dx, dy = (self.mouseX - self.x, self.mouseY - self.y)
+        stepx, stepy = (dx / 25., dy / 25.)
+        self.x += int(stepx)
+        self.y += int(stepy)
+        self.time +=1
+        if(self.time==100):
+            self.die = True
+    def getDie(self):
+        return self.die
 
     def render(self,gd):
         blue = (0, 255, 0)
@@ -45,7 +52,10 @@ class projectTileList:
         self.list.append(other)
     def tick(self):
         for x in self.list:
+            if (x.getDie()):
+                self.list.remove(x)
             x.tick()
+
     def render(self,gd):
         for x in self.list:
             x.render(gd)
@@ -105,7 +115,6 @@ y = displayy//2
 dx=0
 dy=0
 
-hero=Hero([x,y])
 zombies = []
 time=0
 
@@ -134,7 +143,7 @@ while not gameOver:
                 dy=-block
                 lastPressed = 3
             if (event.key == pygame.K_SPACE):
-                proj.add(Projectile(x, y+15, lastPressed))
+                proj.add(Projectile(x, y, lastPressed))
         if event.type == pygame.KEYUP:
             if (event.key == pygame.K_LEFT or event.key == pygame.K_a) and dx == -block:
                 dx=0
@@ -145,13 +154,9 @@ while not gameOver:
             if (event.key == pygame.K_UP or event.key == pygame.K_w) and dy == -block:
                 dy=0
     time+=1
-    if(abs(dx)==block and abs(dy)==block):
-        y+=dy//2
-        x+=dx//2
-    else:
-        y+=dy
-        x+=dx
-    if time==200:
+    y+=dy
+    x+=dx
+    if time==10 :
         zombies.append(Zombies(random.randint(1,6),"Zombie.png",[random.randint(0,800),0],0,0))
         time=1
     for z in zombies:
@@ -189,9 +194,8 @@ while not gameOver:
             y=displayy-block
     gameDisplay.fill(colours[0])
     gameDisplay.blit(Bmap[mapX][mapY].image, Bmap[mapX][mapY].rect)
-    hero.update([x,y])
-    gameDisplay.blit(hero.image,hero.rect)
     gameDisplay.blit(scoreLabel, (100, 100))
+    pygame.draw.rect(gameDisplay, colours[0], [x, y, block, block])
     proj.render(gameDisplay)
     for z in zombies:
         gameDisplay.blit(z.image,z.rect)
