@@ -10,7 +10,7 @@ class Background(pygame.sprite.Sprite):
 class Hero(pygame.sprite.Sprite):
     def __init__(self, location):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load("character.png")
+        self.image = pygame.image.load("Character.png")
         self.rect = self.image.get_rect()
         self.rect.left, self.rect.top = location
     def update(self,location):
@@ -105,6 +105,7 @@ y = displayy//2
 dx=0
 dy=0
 
+hero=Hero([x,y])
 zombies = []
 time=0
 
@@ -133,7 +134,7 @@ while not gameOver:
                 dy=-block
                 lastPressed = 3
             if (event.key == pygame.K_SPACE):
-                proj.add(Projectile(x, y, lastPressed))
+                proj.add(Projectile(x, y+15, lastPressed))
         if event.type == pygame.KEYUP:
             if (event.key == pygame.K_LEFT or event.key == pygame.K_a) and dx == -block:
                 dx=0
@@ -144,9 +145,13 @@ while not gameOver:
             if (event.key == pygame.K_UP or event.key == pygame.K_w) and dy == -block:
                 dy=0
     time+=1
-    y+=dy
-    x+=dx
-    if time==2:
+    if(abs(dx)==block and abs(dy)==block):
+        y+=dy//2
+        x+=dx//2
+    else:
+        y+=dy
+        x+=dx
+    if time==200:
         zombies.append(Zombies(random.randint(1,6),"Zombie.png",[random.randint(0,800),0],0,0))
         time=1
     for z in zombies:
@@ -184,8 +189,9 @@ while not gameOver:
             y=displayy-block
     gameDisplay.fill(colours[0])
     gameDisplay.blit(Bmap[mapX][mapY].image, Bmap[mapX][mapY].rect)
+    hero.update([x,y])
+    gameDisplay.blit(hero.image,hero.rect)
     gameDisplay.blit(scoreLabel, (100, 100))
-    pygame.draw.rect(gameDisplay, colours[0], [x, y, block, block])
     proj.render(gameDisplay)
     for z in zombies:
         gameDisplay.blit(z.image,z.rect)
