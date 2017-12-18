@@ -1,6 +1,7 @@
+import Pygame # learn more: https://python.org/pypi/Pygame
 import pygame
 import random
-
+pygame.init()
 class Background(pygame.sprite.Sprite):
     def __init__(self, image_file, location):
         pygame.sprite.Sprite.__init__(self)  #call Sprite initializer
@@ -8,11 +9,36 @@ class Background(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.left, self.rect.top = location
 class Hero(pygame.sprite.Sprite):
-    def __init__(self, image_file, speed, location):
+    def __init__(self, location):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load(image_file)
+        self.image = pygame.image.load("Character.png")
         self.rect = self.image.get_rect()
         self.rect.left, self.rect.top = location
+    def update(self,location):
+        self.rect.left, self.rect.top = location
+class Projectile:
+    def __init__(self,x,y, directionX, directionY):#boneless
+        self.x = x
+        self.y = y
+        self.xMove = directionX - x
+        self.yMove = directionY - y
+    def tick(self):
+        self.x += self.xMove
+        self.y += self.yMove
+    def render(self,gd):
+        blue = (0, 255, 0)
+        pygame.draw.circle(gd, blue, [self.x,self.y], 5, 5)
+class projectTileList:
+    def __init__(self):
+        self.list = []
+    def add(self, other):
+        self.list.append(other)
+    def tick(self):
+        for x in self.list:
+            x.tick()
+    def render(self,gd):
+        for x in self.list:
+            x.render(gd)
 class Zombies(pygame.sprite.Sprite):
     def __init__(self, speed,image_file, location, dx, dy):
         pygame.sprite.Sprite.__init__(self)
@@ -35,9 +61,10 @@ class Zombies(pygame.sprite.Sprite):
             self.dy = -self.speed
         self.x+=self.dx
         self.y+=self.dy
+        self.update([self.x,self.y])
     def update(self, location):
         self.rect.left, self.rect.top = location
-pygame.init()
+
 
 Bgrass = Background('grass.jpg', [0,0])
 Bsand = Background('sand.jpg', [0,0])
@@ -53,56 +80,83 @@ colours=[(0,0,0),(255,0,0),(0,255,0),(0,0,255),(255,255,255)]
 #          W       R          G         B          B
 
 block=10
-zSpeed=3
 displayx=800
 displayy=600
-fps=20
+fps=120
 
-gd=pygame.display.set_mode((displayx,displayy))
+gameDisplay=pygame.display.set_mode((displayx, displayy))
 pygame.display.set_caption("Test")
 
-clock=pygame.time.Clock()
-ge=False
+gameClock=pygame.time.Clock()
+gameOver=False
 
-zombies = []
-
-x = 300
-y = 300
+x = displayx//2
+y = displayy//2
 dx=0
 dy=0
 
+hero=Hero([x,y])
+zombies = []
 time=0
 
-ud=False
-while not ge:
+proj = projectTileList()
+lastPressed = 0
+
+myfont = pygame.font.SysFont("monospace", 42)
+
+score = 0
+
+Mouse_x, Mouse_y = pygame.mouse.get_pos()
+
+while not gameOver:
+    proj.tick()
+    Mouse_x, Mouse_y = pygame.mouse.get_pos()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            ge=True
+            gameOver=True
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
+            if (event.key == pygame.K_LEFT or event.key == pygame.K_a):
                 dx=-block
-                dy=0
-            elif event.key == pygame.K_RIGHT:
+                lastPressed = 1
+            if (event.key == pygame.K_RIGHT or event.key == pygame.K_d):
                 dx=block
-                dy=0
-            elif event.key == pygame.K_DOWN:
+                lastPressed = 0
+            if (event.key == pygame.K_DOWN or event.key == pygame.K_s):
                 dy=block
-                dx=0
-            elif event.key == pygame.K_UP:
+                lastPressed = 4
+            if (event.key == pygame.K_UP or event.key == pygame.K_w):
                 dy=-block
+                lastPressed = 3
+            if(event.type == pygame.MOUSEBUTTONUP):
+            	proj.add(Projectile(x,y+15,Mouse_x,Mouse_y))
+        if event.type == pygame.KEYUP:
+            if (event.key == pygame.K_LEFT or event.key == pygame.K_a) and dx == -block:
                 dx=0
-        else:
-            dx = 0
-            dy = 0
+            if (event.key == pygame.K_RIGHT or event.key == pygame.K_d) and dx is block:
+                dx=0
+            if (event.key == pygame.K_DOWN or event.key == pygame.K_s) and dy is block:
+                dy=0
+            if (event.key == pygame.K_UP or event.key == pygame.K_w) and dy == -block:
+                dy=0
     time+=1
-    y+=dy
-    x+=dx
-    if time==100:
+    if(abs(dx)==block and abs(dy)==block):
+        y+=dy//2
+        x+=dx//2
+    else:
+        y+=dy
+        x+=dx
+    if time==200:
         zombies.append(Zombies(random.randint(1,6),"Zombie.png",[random.randint(0,800),0],0,0))
         time=1
     for z in zombies:
         z.tick(x,y)
-    #print(mapX,mapY)
+        for i in range (0,len(proj.list)):
+            if (proj.list[i].x-z.x <= 25 and  proj.list[i].x-z.x >= 0) and (proj.list[i].y - z.y <= 25 and proj.list[i].y-z.y >= 0):
+                if z in zombies:
+                    zombies.remove(z)
+                    score = score + 1
+                print("DELETED")
+    scoreLabel = myfont.render(str(score), 1, (0,0,0))
     if(x<0):
         x=displayx-block
         if(mapX>0):
@@ -127,15 +181,15 @@ while not ge:
             mapY+=1
         else:
             y=displayy-block
-    #print(x,y)
-    gd.fill(colours[0])
-    gd.blit(Bmap[mapX][mapY].image, Bmap[mapX][mapY].rect)
-    pygame.draw.rect(gd,colours[0],[x,y,block,block])
+    gameDisplay.fill(colours[0])
+    gameDisplay.blit(Bmap[mapX][mapY].image, Bmap[mapX][mapY].rect)
+    hero.update([x,y])
+    gameDisplay.blit(hero.image,hero.rect)
+    gameDisplay.blit(scoreLabel, (100, 100))
+    proj.render(gameDisplay)
     for z in zombies:
-        z.update([z.x,z.y])
-        gd.blit(z.image,z.rect)
+        gameDisplay.blit(z.image,z.rect)
     pygame.display.update()
-    clock.tick(fps)
-
+    gameClock.tick(fps)
 pygame.quit()
 quit()
